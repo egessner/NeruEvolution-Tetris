@@ -8,16 +8,16 @@
 <html>
   <h1>
     <input type = 'button' id = 'restartButton' value = 'Restart'/>
-    <input type = 'number' id = 'n' value = '4' width = '100'/>
-    <!-- <label id = 'scoreLabel'></label> -->
   </h1>
   <body>
     <canvas id='mainCanvas' width='600' height='800'></canvas>
-    <canvas id='sideCanvas' width='160' height='160'></canvas>
+    <!-- <canvas id='sideCanvas' width='160' height='160'></canvas> -->
     <script src='.\shape.js'></script>
+    <script src='.\nn.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
     <script src='.\Tetris.js'></script>
     <script src='.\runner.js'></script>
-    <p>How to play: W to rotate | A/D to move | S to soft fall | Q to hard drop</p>
+    <p>Evolutionary Neural Network playing Tetris</p>
     <a href = 'https://tetris.wiki/Scoring'> Scoring based on Original BPS scoring system</a>
   </body>
 </html>

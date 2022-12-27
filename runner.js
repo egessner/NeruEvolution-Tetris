@@ -1,15 +1,12 @@
 /* eslint linebreak-style: ['error', 'windows'] */
 // GLOBALS
-let n;
+const n = 100;
 const canvas = document.getElementById('mainCanvas');
 let tetris;
 /**
  * @description init everything and begin each tetris instance
  */
 function main() {
-  const tetrisNum = document.getElementById('n');
-  n = tetrisNum.value;
-
   const context = canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -19,34 +16,10 @@ function main() {
   createTetrisArray();
   tetris.forEach((row) => row.forEach((tet) => tet.draw()));
 
-  document.addEventListener('keypress', onKeyPress);
-  document.addEventListener('keydown', onKeyDown);
+  // document.addEventListener('keypress', onKeyPress);
+  // document.addEventListener('keydown', onKeyDown);
   const button = document.getElementById('restartButton');
   button.addEventListener('click', main);
-}
-
-/**
- * @description On key press wrapper
- * @param {*} keypress
- */
-function onKeyPress(keypress) {
-  if (keypress.code == 'KeyW') {
-    tetris.forEach((row) => row.forEach((tet) => tet.rotate()));
-  } else if (keypress.code == 'KeyA' || keypress.code == 'KeyD') {
-    tetris.forEach((row) => row.forEach((tet) => tet.move(keypress.code)));
-  } else if (keypress.code == 'KeyQ') {
-    tetris.forEach((row) => row.forEach((tet) => tet.drop()));
-  }
-}
-
-/**
- * @description On key down wrapper
- * @param {*} keypress
- */
-function onKeyDown(keypress) {
-  if (keypress.code == 'KeyS') {
-    tetris.forEach((row) => row.forEach((tet) => tet.fall()));
-  }
 }
 
 /**

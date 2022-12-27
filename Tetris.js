@@ -1,5 +1,4 @@
 /* eslint linebreak-style: ['error', 'windows'] */
-/* GLOBALS */
 /**
  * @description
  */
@@ -29,12 +28,15 @@ class Tetris {
     this.sideGrid = 0;
     this.requestID = 0;
 
+    // we'll worry about the side grid after we get this working
+    this.brain = new NeuralNetwork(15*(20+this.BUFFERSPACE), 245, 6);
+
 
     this.mainCanvas = document.getElementById('mainCanvas');
-    this.sideCanvas = document.getElementById('sideCanvas');
+    // this.sideCanvas = document.getElementById('sideCanvas');
     // this.scoreLabel = document.getElementById('scoreLabel');
     this.context = this.mainCanvas.getContext('2d');
-    this.sideContext = this.sideCanvas.getContext('2d');
+    // this.sideContext = this.sideCanvas.getContext('2d');
 
     this.then = Date.now();
     this.framecount = 0;
@@ -134,22 +136,95 @@ class Tetris {
   /**
    * @description draws side grid displaying next shape
    */
-  drawSideGrid() {
-    for (let y = 0; y < this.sideGrid.length; y++) {
-      for (let x = 0; x < this.sideGrid[y].length; x++) {
-        if (this.sideGrid[y][x] != 0) {
-          this.sideContext.fillStyle = this.sideGrid[y][x].color;
-          this.sideContext.fillRect(x * this.SIDESCALE, y * this.SIDESCALE,
-              this.SIDESCALE, this.SIDESCALE);
-          this.sideContext.strokeRect(x * this.SIDESCALE, y * this.SIDESCALE,
-              this.SIDESCALE, this.SIDESCALE);
+  // drawSideGrid() {
+  //   for (let y = 0; y < this.sideGrid.length; y++) {
+  //     for (let x = 0; x < this.sideGrid[y].length; x++) {
+  //       if (this.sideGrid[y][x] != 0) {
+  //         this.sideContext.fillStyle = this.sideGrid[y][x].color;
+  //         this.sideContext.fillRect(x * this.SIDESCALE, y * this.SIDESCALE,
+  //             this.SIDESCALE, this.SIDESCALE);
+  //         this.sideContext.strokeRect(x * this.SIDESCALE, y * this.SIDESCALE,
+  //             this.SIDESCALE, this.SIDESCALE);
+  //       } else {
+  //         this.sideContext.fillStyle = '#ffffff';
+  //         this.sideContext.fillRect(x * this.SIDESCALE, y * this.SIDESCALE,
+  //             this.SIDESCALE, this.SIDESCALE);
+  //       }
+  //     }
+  //   }
+  // }
+
+  /**
+   * @description
+   */
+  think() {
+    const inputs = this.normalizeInputs();
+    const outputs = this.brain.predict(inputs);
+    // find the index of the greatest output and go with that one
+    const greatestVal = Math.max(...outputs);
+    const index = outputs.indexOf(greatestVal);
+
+    // console.log(outputs);
+
+    switch (index) {
+      case 0: // rotate
+        this.rotate();
+        break;
+      case 1: // move left
+        this.move(1);
+        break;
+      case 2: // move right
+        this.move(-1);
+        break;
+      case 3: // soft fall
+        this.fall();
+        break;
+      case 4: // hard drop
+        this.drop();
+        break;
+      case 5: // do nothing
+        break;
+    }
+  }
+
+  /**
+   * @description need to noramilize the inputs
+   * im thinking 0 for empty
+   * .5 for other shape
+   * 1 for current shape
+   * @return {*}
+   */
+  normalizeInputs() {
+    const inputs = [];
+    // for (let h = 0; h < this.grid.length; h++) {
+    //   inputs.push(new Array(this.grid[0].length).fill(0));
+    // }
+    let i = 0;
+    for (let y = 0; y < this.grid.length; y++) {
+      for (let x = 0; x < this.grid[y].length; x++) {
+        if (this.grid[y][x] == 0) {
+          inputs[i] = 0; // redundant
+        } else if (this.grid[y][x] == this.curShape) {
+          inputs[i] = 1;
         } else {
-          this.sideContext.fillStyle = '#ffffff';
-          this.sideContext.fillRect(x * this.SIDESCALE, y * this.SIDESCALE,
-              this.SIDESCALE, this.SIDESCALE);
+          inputs[i] = .5;
         }
+        i++;
       }
     }
+    // for (let y = 0; y < this.grid.length; y++) {
+    //   for (let x = 0; x < this.grid[y].length; x++) {
+    //     if (this.grid[y][x] == 0) {
+    //       inputs[y][x] = 0; // redundant
+    //     } else if (this.grid[y][x] == this.curShape) {
+    //       inputs[y][x] = 1;
+    //     } else {
+    //       inputs[y][x] = .5;
+    //     }
+    //   }
+    // }
+    // console.log(inputs);
+    return inputs;
   }
 
   /**
@@ -195,14 +270,14 @@ class Tetris {
 
   /**
    * @description Try to move curShape left or right one
-   * @param {*} keyCode
+   * @param {*} i
    * @return {undefined}
    */
-  move(keyCode) {
+  move(i) {
     let newpositions = [];
-    if (keyCode == 'KeyA') {
+    if (i == 1) {
       newpositions = this.curShape.move(-1); // move left
-    } else if (keyCode == 'KeyD') {
+    } else if (i == -1) {
       newpositions = this.curShape.move(1); // move right
     }
 
@@ -407,7 +482,7 @@ class Tetris {
         this.framecount = 0;
         this.fall();
       }
-
+      this.think();
       this.drawShapes();
       this.drawOutline();
       // drawGrid();
