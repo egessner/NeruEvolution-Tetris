@@ -345,6 +345,13 @@ class Tetris {
    * @return {int} 1: bottom hit 2: side hit; 0: no hit
    */
   borderDetection(position) {
+    /** I think the issue is in here
+     * Collision detection is trying to look at this.grid[24][7]
+     * this.grid[24] is out of bounds and 7 is not defined
+     * why are we even letting it look out of bounds?
+     * Border detection should stop it right?
+     * Let's loop every index of shape and check if its in bounds
+     */
     // find lowest square
     let lowY = 0;
     let leftX = 0;
@@ -375,12 +382,20 @@ class Tetris {
    * @return {int} 1: collision with another shape 0: no collision
    */
   collisionDetection(position) { // not sure why position[7,24] causes issues
-    for (let i = 0; i < position.length; i++) {
+    let i = 0;
+    try {
+    for (i; i < position.length; i++) {
       if (this.grid[position[i][1]][position[i][0]] != 0 &&
           this.grid[position[i][1]][position[i][0]] != this.curShape) {
         return 1;
       }
     }
+  } catch(e) {
+    console.log("current shape index: " + this.curShape.index);
+    console.log("position " + position[i]);
+    console.log("grid at position: ");
+    console.log(this.grid);
+  }
     return 0;
   }
 
