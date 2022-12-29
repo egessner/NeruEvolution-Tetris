@@ -67,9 +67,9 @@ class NeuralNetwork {
         const shape = weights[i].shape;
         const values = tensor.dataSync().slice();
         for (let j = 0; j < values.length; j++) {
-          if (random(1) < rate) {
+          if (Math.random() < rate) {
             const w = values[j];
-            values[j] = w + gaussianRandom();
+            values[j] = w + this.gaussianRandom();
           }
         }
         const newTensor = tf.tensor(values, shape);

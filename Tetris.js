@@ -9,8 +9,9 @@ class Tetris {
    * @param {int} scale
    * @param {int} xPad
    * @param {int} yPad
+   * @param {*} brain
    */
-  constructor(scale, xPad, yPad) {
+  constructor(scale, xPad, yPad, brain) {
     this.STARTING_X = 7;
     this.STARTING_Y = 2;
     this.FPS = 30;
@@ -29,7 +30,11 @@ class Tetris {
     this.requestID = 0;
 
     // we'll worry about the side grid after we get this working
-    this.brain = new NeuralNetwork(15*(20+this.BUFFERSPACE), 245, 6);
+    if (brain) {
+      this.brain = brain;
+    } else {
+      this.brain = new NeuralNetwork(15*(20+this.BUFFERSPACE), 245, 6);
+    }
 
 
     this.mainCanvas = document.getElementById('mainCanvas');
@@ -194,7 +199,7 @@ class Tetris {
    * 1 for current shape
    * @return {*}
    */
-  normalizeInputs() {
+  normalizeInputs() { // this is going to need some refactoring
     const inputs = [];
     // for (let h = 0; h < this.grid.length; h++) {
     //   inputs.push(new Array(this.grid[0].length).fill(0));
@@ -203,7 +208,7 @@ class Tetris {
     for (let y = 0; y < this.grid.length; y++) {
       for (let x = 0; x < this.grid[y].length; x++) {
         if (this.grid[y][x] == 0) {
-          inputs[i] = 0; // redundant
+          inputs[i] = 0;
         } else if (this.grid[y][x] == this.curShape) {
           inputs[i] = 1;
         } else {
@@ -212,19 +217,22 @@ class Tetris {
         i++;
       }
     }
-    // for (let y = 0; y < this.grid.length; y++) {
-    //   for (let x = 0; x < this.grid[y].length; x++) {
-    //     if (this.grid[y][x] == 0) {
-    //       inputs[y][x] = 0; // redundant
-    //     } else if (this.grid[y][x] == this.curShape) {
-    //       inputs[y][x] = 1;
-    //     } else {
-    //       inputs[y][x] = .5;
-    //     }
-    //   }
-    // }
     // console.log(inputs);
     return inputs;
+  }
+
+  /**
+   * @description
+   */
+  dispose() {
+    this.brain.dispose();
+  }
+
+  /**
+   * @description
+   */
+  mutate() {
+    this.brain.mutate(0.1);
   }
 
   /**
@@ -366,7 +374,7 @@ class Tetris {
    * @param {*} position
    * @return {int} 1: collision with another shape 0: no collision
    */
-  collisionDetection(position) {
+  collisionDetection(position) { // not sure why position[7,24] causes issues
     for (let i = 0; i < position.length; i++) {
       if (this.grid[position[i][1]][position[i][0]] != 0 &&
           this.grid[position[i][1]][position[i][0]] != this.curShape) {
