@@ -1,6 +1,6 @@
 /* eslint linebreak-style: ['error', 'windows'] */
 // GLOBALS
-const n = 64;
+const n = 100;
 const canvas = document.getElementById('mainCanvas');
 let tetris;
 const context = canvas.getContext('2d');
