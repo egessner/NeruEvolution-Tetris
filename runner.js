@@ -100,7 +100,7 @@ function nextGeneration() {
   //   }
   // }
   // recreate array with new brains
-  const bestParents = fitness();
+  const bestParents = fitness2();
   createTetrisArray(bestParents);
   bestParents.forEach((tet) => tet.dispose());
 
@@ -137,6 +137,54 @@ function fitness() {
       ', num shapes: ' + tet.numShapesUsed + ', num rows:' +
       + tet.numRowsCleared));
   return bestParents; // return array of best parents top n *.05 best scorers
+}
+
+/**
+ * @description
+ * @return {*}
+ */
+function fitness2() {
+  let bestParents = [];
+  for (let y = 0; y < tetris.length; y++) {
+    for (let x = 0; x < tetris[y].length; x++) {
+      const curScore = checkTakenPoints(tetris[y][x].grid) +
+                (tetris[y][x].numShapesUsed * 10) +
+                (tetris[y][x].numRowsCleared * 500);
+      tetris[y][x].fitness = curScore;
+      bestParents.push(tetris[y][x]);
+    }
+  }
+
+  bestParents.sort((a, b) => a.fitness < b.fitness ?
+                    1: a.fitness > b.fitness ? -1 : 0);
+  const numParents = Math.ceil(n *.02);
+  const worstParents = bestParents.slice(numParents, bestParents.length);
+  worstParents.forEach((tet) => tet.dispose());
+  bestParents = bestParents.slice(0, numParents);
+
+
+  bestParents.forEach((tet) => console.log(
+      'fitness: ' + tet.fitness + ', score: ' + tet.score +
+      ', num shapes: ' + tet.numShapesUsed + ', num rows:' +
+      + tet.numRowsCleared));
+  return bestParents;
+}
+
+/**
+ * @description
+ * @param {*} grid
+ * @return {int}
+ */
+function checkTakenPoints(grid) {
+  let num = 0;
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x] != 0) {
+        num += Math.floor(Math.pow(1.1, (y * 1.5)));
+      }
+    }
+  }
+  return num;
 }
 
 /**
