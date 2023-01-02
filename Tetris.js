@@ -31,7 +31,7 @@ class Tetris {
 
     // we'll worry about the side grid after we get this working
     if (brain) {
-      this.brain = brain;
+      this.brain = brain.copy();
     } else {
       this.brain = new NeuralNetwork(15*(20+this.BUFFERSPACE), 245, 6);
     }
@@ -48,6 +48,9 @@ class Tetris {
     this.gameOver = 0;
     this.compFallSpeed = 0;
     this.score = 0;
+    this.fitness = 0;
+    this.numShapesUsed = 0;
+    this.numRowsCleared = 0;
     this.updateScore();
 
     this.createGrids(15, 20 + this.BUFFERSPACE);
@@ -415,12 +418,16 @@ class Tetris {
 
     if (fullRows.length == 1) {
       this.score+=40;
+      this.numRowsCleared++;
     } else if (fullRows.length == 2) {
       this.score+=100;
+      this.numRowsCleared+= 2;
     } else if (fullRows.length == 3) {
       this.score+=300;
+      this.numRowsCleared+= 3;
     } else if (fullRows.length == 4) {
       this.score+=1200;
+      this.numRowsCleared+= 4;
     }
   }
 
@@ -445,6 +452,7 @@ class Tetris {
     }
 
     this.curShape = this.nextShape;
+    this.numShapesUsed++;
     if (this.shapeBag.length == 0) {
       this.shapeBag = [0, 1, 2, 3, 4, 5, 6];
     }
@@ -457,7 +465,6 @@ class Tetris {
     this.updateScore();
     this.compFallSpeed = (this.FPS + this.compFallSpeed) <= 5 ?
       this.compFallSpeed : this.compFallSpeed - this.DFALLSPEED;
-
     this.updateSideGrid();
     // this.drawSideGrid();
   }
@@ -482,7 +489,7 @@ class Tetris {
 
       // every fall frame
       /* previously: if(framecount % this.FPS == 0) { */
-      if (this.framecount >= (this.FPS + this.compFallSpeed)) {
+      if (this.framecount >= 5 /* (this.FPS + this.compFallSpeed) */) {
         this.framecount = 0;
         this.fall();
       }

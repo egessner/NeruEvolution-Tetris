@@ -1,8 +1,9 @@
 /* eslint linebreak-style: ['error', 'windows'] */
 // GLOBALS
-const n = 100;
+const n = 169;
 const canvas = document.getElementById('mainCanvas');
 let tetris;
+let gen = 1;
 const context = canvas.getContext('2d');
 /**
  * @description init everything and begin each tetris instance
@@ -29,11 +30,10 @@ function main() {
       }
     }
     if (n == numGO) {
-      console.log('all done');
       nextGeneration();
       // clearInterval(timerID);
     }
-  }, 1 * 1000); // 60 * 1000 milsec every minute
+  }, 60 * 1000); // 60 * 1000 milsec every minute
 }
 
 /**
@@ -42,7 +42,7 @@ function main() {
  * as long as the canvas is of ratio 3x4 this will work
  * @param {*} brain;
  */
-function createTetrisArray(brain) {
+function createTetrisArray(bestParents) {
   tetris = [];
   // determine size of square tetris array
   let i;
@@ -67,8 +67,8 @@ function createTetrisArray(brain) {
     for (let x = 0; x < tetris[0].length; x++) {
       const xPad = (canvas.width / i) * x;
       if ((y*i) + x <= n - 1) {
-        if (brain) {
-          tetris[y][x] = new Tetris(scale, xPad, yPad, brain);
+        if (bestParents) {
+          tetris[y][x] = new Tetris(scale, xPad, yPad, pickone(bestParents));
           tetris[y][x].mutate();
         } else {
           tetris[y][x] = new Tetris(scale, xPad, yPad);
@@ -86,13 +86,13 @@ function createTetrisArray(brain) {
 function nextGeneration() {
   context.clearRect(0, 0, canvas.width, canvas.height);
   // pick the one with the best score - implicit fitness function
-  let bestParent = tetris[0][0];
-  for (let y = 0; y < tetris.length; y++) {
-    for (let x = 0; x < tetris[0].length; x++) {
-      const curScore = tetris[y][x].score;
-      bestParent = bestParent.score > curScore ? bestParent : tetris[y][x];
-    }
-  }
+  // let bestParent = tetris[0][0];
+  // for (let y = 0; y < tetris.length; y++) {
+  //   for (let x = 0; x < tetris[0].length; x++) {
+  //     const curScore = tetris[y][x].score;
+  //     bestParent = bestParent.score > curScore ? bestParent : tetris[y][x];
+  //   }
+  // }
   // dispose of old brains
   // for (let y = 0; y < tetris.length; y++) {
   //   for (let x = 0; x < tetris[0].length; x++) {
@@ -100,8 +100,54 @@ function nextGeneration() {
   //   }
   // }
   // recreate array with new brains
-  createTetrisArray(bestParent.brain);
+  const bestParents = fitness();
+  createTetrisArray(bestParents);
+  bestParents.forEach((tet) => tet.dispose());
+
   tetris.forEach((row) => row.forEach((tet) => tet.draw()));
+  gen++;
+  console.log('Generation ' + gen);
+}
+
+/**
+ * @description make it so it only calcs fitness
+ * @return {*}
+ */
+function fitness() {
+  let bestParents = [];
+  for (let y = 0; y < tetris.length; y++) {
+    for (let x = 0; x < tetris[0].length; x++) {
+      const curScore = tetris[y][x].score +
+        (tetris[y][x].numShapesUsed * 100) +
+        (tetris[y][x].numRowsCleared * 10000);
+      tetris[y][x].fitness = curScore;
+      bestParents.push(tetris[y][x]);
+    }
+  }
+  bestParents.sort((a, b) => a.fitness < b.fitness ?
+                    1: a.fitness > b.fitness ? -1 : 0);
+  const numParents = Math.ceil(n *.02);
+  const worstParents = bestParents.slice(numParents, bestParents.length);
+  worstParents.forEach((tet) => tet.dispose());
+  bestParents = bestParents.slice(0, numParents);
+
+
+  bestParents.forEach((tet) => console.log(
+      'fitness: ' + tet.fitness + ', score: ' + tet.score +
+      ', num shapes: ' + tet.numShapesUsed + ', num rows:' +
+      + tet.numRowsCleared));
+  return bestParents; // return array of best parents top n *.05 best scorers
+}
+
+/**
+ * create a pickone function
+ * @description
+ * @param {Array} bestParents
+ * @return {*}
+ */
+function pickone(bestParents) {
+  const oneIndex = Math.floor(Math.random() * bestParents.length);
+  return bestParents[oneIndex].brain;
 }
 
 main();

@@ -46,10 +46,10 @@ class NeuralNetwork {
       }
       modelCopy.setWeights(weightCopies);
       return new NeuralNetwork(
-          modelCopy,
           this.input_nodes,
           this.hidden_nodes,
           this.output_nodes,
+          modelCopy,
       );
     });
   }
